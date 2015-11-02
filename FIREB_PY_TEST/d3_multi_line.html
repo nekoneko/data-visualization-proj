@@ -79,16 +79,10 @@ var svg = d3.select("body").append("svg")
 // connect to firebase db
 var firebaseRef = new Firebase("https://ikdde-team6.firebaseio.com/vegetable_data/");
 
-// path of data
-var query = ["葉菜類/小白菜","葉菜類/包心白菜","葉菜類/青江菜","葉菜類/香菜","葉菜類/莧菜"];
-//var query = ["葉菜類/小白菜","葉菜類/包心白菜","葉菜類/青江菜","葉菜類/莧菜"];
-//var query = ["葉菜類/小白菜","葉菜類/包心白菜","葉菜類/莧菜"];
-//var query = ["葉菜類/小白菜","葉菜類/包心白菜"];
-
 // store data from firebase and drawing charts
 firebaseRef.on("value", function(snapshot) {
 
-	var data = [];
+	var vgdata = [];
 
 	var name = d3.keys(snapshot.val()).filter(function(name) { return name != 'default'});
 
@@ -96,7 +90,7 @@ firebaseRef.on("value", function(snapshot) {
 
 	snapshot.forEach( function(child) {
 		child.forEach( function(grandChild) {
-			data.push( {
+			vgdata.push( {
 				cate: child.key(),
 				name: grandChild.key(),
 				value: grandChild.val(),
@@ -106,7 +100,7 @@ firebaseRef.on("value", function(snapshot) {
 	});
 
 	// reconstruct(rebuild) date
-	data.forEach( function(v) {
+	vgdata.forEach( function(v) {
 		v.value = d3.values(v.value);
 		v.value.forEach( function(e) {
 			e.date = new Date(e.date.year,e.date.month,e.date.day);
@@ -115,22 +109,22 @@ firebaseRef.on("value", function(snapshot) {
 
 	// set color domain by vegetable name
 	//     vegetable name --mapping--> specific color
-	color.domain(data.map(function(v) { return v.name}));
+	color.domain(vgdata.map(function(v) { return v.name}));
 
 
 	// set x domain by range from min of date to max of date
 	//     x invoked in xAxis
 	x.domain([
-		d3.min(data, function(v) { return d3.min(v.value, function(d) { return d.date});}),
-		d3.max(data, function(v) { return d3.max(v.value, function(d) { return d.date});})
+		d3.min(vgdata, function(v) { return d3.min(v.value, function(d) { return d.date});}),
+		d3.max(vgdata, function(v) { return d3.max(v.value, function(d) { return d.date});})
 	]);
 
 
 	// set y domain by range from min of date to max of date
 	//     y invoked in yAxis
 	y.domain([
-		d3.min(data.filter(function(v) { return v.opacity;}), function(v) { return d3.min(v.value, function(d) { return d.price});}),
-		d3.max(data.filter(function(v) { return v.opacity;}), function(v) { return d3.max(v.value, function(d) { return d.price});})
+		d3.min(vgdata.filter(function(v) { return v.opacity;}), function(v) { return d3.min(v.value, function(d) { return d.price});}),
+		d3.max(vgdata.filter(function(v) { return v.opacity;}), function(v) { return d3.max(v.value, function(d) { return d.price});})
 	]);
 
 
@@ -162,7 +156,7 @@ firebaseRef.on("value", function(snapshot) {
 
 	// add all g
 	var vg = svg.selectAll(".city")
-				.data(data)
+				.data(vgdata)
 				.enter()
 			.append("g")
 				.attr("class","city")
@@ -192,31 +186,31 @@ firebaseRef.on("value", function(snapshot) {
 		.style("stroke", "#000")
 		.style("fill", function(v) { return color(v.name); });
 
-	var label_W = width/data.length; 
+	var label_W = width/vgdata.length; 
 
-	//console.log(data);
+	//console.log(vgdata);
 
 	// add label for control line display
 	// Reference from http://bl.ocks.org/d3noob/e99a762017060ce81c76
-	/*
-	svg.append("g")
-		.selectAll(".choose")
-		.data(data)
-		.enter()
-	.append("text")
-		.attr("class","choose")
-		.attr("x", function(v) { return (label_W/2)+v.id*label_W; })
-		.attr("y", function(v) { return height+(margin.bottom/2)+5; })
-		.style("fill", function(v) { return color(v.name);})
-		.on("click", function (v) { click(v); } )
-		.text(function(v) { return v.name;});
+	//
+	//svg.append("g")
+	//	.selectAll(".choose")
+	//	.data(vgdata)
+	//	.enter()
+	//.append("text")
+	//	.attr("class","choose")
+	//	.attr("x", function(v) { return (label_W/2)+v.id*label_W; })
+	//	.attr("y", function(v) { return height+(margin.bottom/2)+5; })
+	//	.style("fill", function(v) { return color(v.name);})
+	//	.on("click", function (v) { click(v); } )
+	//	.text(function(v) { return v.name;});
 
-	*/
+	//
 
 	d3.select("body")
 	.append("div")
 		.selectAll(".vginput")
-		.data(data)
+		.data(vgdata)
 	.enter()
 	.append("label")
 		.style("color", function(v) { return color(v.name); })
@@ -235,13 +229,13 @@ firebaseRef.on("value", function(snapshot) {
 
 	// for toggle event
 	function click(v) {
-		var duration_time = 800;
+		var duration_time = 200;
 
 		v.opacity ^= 1;
 
 		y.domain([
-			d3.min(data.filter(function(v) { return v.opacity;}), function(v) { return d3.min(v.value, function(d) { return d.price});}),
-			d3.max(data.filter(function(v) { return v.opacity;}), function(v) { return d3.max(v.value, function(d) { return d.price});})
+			d3.min(vgdata.filter(function(v) { return v.opacity;}), function(v) { return d3.min(v.value, function(d) { return d.price});}),
+			d3.max(vgdata.filter(function(v) { return v.opacity;}), function(v) { return d3.max(v.value, function(d) { return d.price});})
 		]);
 
 		d3.select(".y.axis")
@@ -249,7 +243,7 @@ firebaseRef.on("value", function(snapshot) {
 			.duration(duration_time)
 			.call(yAxis);
 
-		data.forEach( function(v) {
+		vgdata.forEach( function(v) {
 				d3.select(".line#tag_"+v.name)
 					.transition()
 					.duration(duration_time)
