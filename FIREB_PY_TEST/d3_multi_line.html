@@ -32,6 +32,10 @@ body {
   stroke-width: 1.5px;
 }
 
+.bar {
+	fill: steelblue;
+}
+
 </style>
 <body>
 </body>
@@ -75,18 +79,109 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 //end--line chart feature setting
 
+/*
+var x_bar = d3.scale.linear()
+	.range([0, width]);
+
+var y_bar = d3.scale.linear()
+	.range([height, 0]);
+
+var xbAxis = d3.svg.axis()
+	.scale(x_bar)
+	.orient("bottom")
+	.ticks(d3.time.year,1);
+
+var ybAxis = d3.svg.axis()
+	.scale(y_bar)
+	.orient("right")
+	.ticks(5);
+
+var svg = d3.select("body").append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+	.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var parseDate = d3.time.format("%Y-%m-%d").parse;
+
+var tyRef = new Firebase("https://ikdde-team6.firebaseio.com/TyphonDB/");
+
+tyRef.on("value", function(snapshot) {
+
+	var tydata = [];
+
+	snapshot.forEach( function(ty) {
+		var ty = ty.val();
+		
+		tydata.push({
+			cht: ty.cht_name,
+			eng: ty.eng_name,
+			warn: isNaN(+ty.warning_count)?0:+ty.warning_count,
+			max: ty.max_intensity,
+			sea_st: parseDate(ty.sea_start_datetime.split(" ")[0]),
+			sea_ed: parseDate(ty.sea_end_datetime.split(" ")[0])
+		});
+	});
+
+	console.log(tydata);
+
+	tydata = tydata.filter(function(ty) { return ty.sea_st > new Date(2014,0,0); });
+
+	console.log(tydata);
+
+	// set x, y domain
+	x_bar.domain(d3.extent(tydata,function(ty) { return ty.sea_st; }));
+	y_bar.domain(d3.extent(tydata,function(ty) { return ty.warn; }));
+
+	svg.append("g")
+		.attr("class","x axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(xbAxis);
+
+	svg.append("g")
+		.attr("class", "y axis")
+		.attr("transform", "translate(" + width + ",0)")
+		.call(ybAxis)
+	.append("text")
+		.attr("transform", "rotate(-90)")
+		.attr("y", 6)
+		.attr("dy", ".71em")
+		.style("text-anchor", "end")
+		.text("Frequency");
+
+	var time_domain = d3.extent(tydata, function(ty) { return ty.sea_st;});
+
+	var dist = (time_domain[1] - time_domain[0])/(1000*60*60*24);
+
+	var bar_unit = width / dist;
+
+	console.log(time_domain);
+	console.log(dist);
+
+	svg.append("g")
+		.selectAll(".bar")
+		.data(tydata)
+		.enter().append("rect")
+		.attr("class","bar")
+		.attr("x", function(ty) { return x_bar(ty.sea_st); })
+		.attr("width", bar_unit)
+		.attr("y", function(ty) { return y_bar(ty.warn); })
+		.attr("height", function(ty) { return height - y_bar(ty.warn); });
+});
+*/
+
 
 // connect to firebase db
 var firebaseRef = new Firebase("https://ikdde-team6.firebaseio.com/vegetable_data/");
 
+	var vgdata = [];
+
 // store data from firebase and drawing charts
 firebaseRef.on("value", function(snapshot) {
 
-	var vgdata = [];
-
 	var name = d3.keys(snapshot.val()).filter(function(name) { return name != 'default'});
 
-	console.log(name);
+	//console.log(name);
 
 	snapshot.forEach( function(child) {
 		child.forEach( function(grandChild) {
@@ -229,7 +324,7 @@ firebaseRef.on("value", function(snapshot) {
 
 	// for toggle event
 	function click(v) {
-		var duration_time = 200;
+		var duration_time = 800;
 
 		v.opacity ^= 1;
 
